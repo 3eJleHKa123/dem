@@ -1,0 +1,32 @@
+name: Build Windows EXE
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install AutoHotkey v2
+        shell: pwsh
+        run: |
+          $url = 'https://www.autohotkey.com/download/ahk-v2.exe'
+          Invoke-WebRequest $url -OutFile ahk-v2.exe
+          Start-Process .\ahk-v2.exe -ArgumentList '/silent' -Wait
+
+      - name: Compile EXE
+        shell: pwsh
+        run: |
+          $compiler = 'C:\Program Files\AutoHotkey\Compiler\Ahk2Exe.exe'
+          & $compiler /in .\src\SysAdminCheat.ahk /out .\SysAdminCheat.exe /base 'C:\Program Files\AutoHotkey\v2\AutoHotkey64.exe'
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SysAdminCheat.exe
+          path: SysAdminCheat.exe
